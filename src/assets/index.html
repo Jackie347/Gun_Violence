@@ -2,7 +2,6 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="http://neo4j-contrib.github.io/developer-resources/language-guides/assets/css/main.css">
-    <link type="text/css" rel="stylesheet" href="../css/index.css">
     <title>Gun Violence</title>
 </head>
 
@@ -27,7 +26,56 @@
     </div>
 </div><!-- end of nar bar -->
 
+<!-- begin page container -->
 <div class="container">
+
+    <!-- begin function 2 -->
+    <div class="row">
+        <div>
+            <span class="title">Search Gun Type Frequency</span>
+        </div>
+        <div>
+            <form role="search" class="navbar-form" id="GunFrequency">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="inputGroupSelect01">Options</label>
+                    </div>
+                    <select class="custom-select" id="inputGroupSelect01">
+                        <option selected>Choose...</option>
+                        <option value="1">One</option>
+                        <option value="2">Two</option>
+                        <option value="3">Three</option>
+                    </select>
+                    <button class="col-2 btn btn-default" type="submit">Search</button>
+                </div>
+            </form>
+        </div>
+    </div><!-- end of function 2 -->
+
+    <!-- begin function 2 search results -->
+    <div class="row">
+        <div class="col-2"></div>
+        <div class="panel panel-default col-8">
+            <div class="panel-heading">Search Results</div>
+            <table id="results2" class="table table-striped table-hover">
+                <thead>
+                <tr>
+                    <th>Incident ID</th>
+                    <th>Date</th>
+                    <th>Address</th>
+                    <th>State</th>
+                    <th>City_or_County</th>
+                    <th>n_killed</th>
+                    <th>n_injured</th>
+                    <th>n_guns_involved</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-2"></div>
+    </div><!-- end of search results -->
 
     <!-- begin function 1 -->
     <div class="row">
@@ -35,30 +83,37 @@
             <span class="title">Search incidents by city or county</span>
         </div>
         <div>
-            <form role="search" class="navbar-form" id="search">
+            <form role="search" class="navbar-form" id="searchIncident">
                 <div class="form-group row">
-                    <label class="col-sm-4 col-form-label">City/County: </label>
-                    <div class="col-sm-6">
-                        <input type="text" value="Pittsburgh" placeholder="city or county" class="form-control" name="search">
+                    <label class="col-sm-2 col-form-label">City/County: </label>
+                    <div class="col-sm-3">
+                        <input type="text" placeholder="city or county" class="form-control" name="city" value="Pittsburgh">
+                    </div>
+
+                    <label class="col-sm-1 col-form-label">State: </label>
+                    <div class="col-sm-3">
+                        <input type="text" placeholder="state" class="form-control" name="state" value="Pennsylvania">
                     </div>
                     <button class="col-sm-2 btn btn-default" type="submit">Search</button>
                 </div>
 
             </form>
         </div>
-    </div><!-- begin function 1 -->
+    </div><!-- end of function 1 -->
 
     <!-- begin function 1 search results -->
     <div class="row">
         <div class="col-2"></div>
         <div class="panel panel-default col-8">
             <div class="panel-heading">Search Results</div>
-            <table id="results" class="table table-striped table-hover">
+            <table id="results1" class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th>Incident ID</th>
                     <th>Date</th>
                     <th>Address</th>
+                    <th>State</th>
+                    <th>City_or_County</th>
                     <th>n_killed</th>
                     <th>n_injured</th>
                     <th>n_guns_involved</th>
@@ -73,8 +128,7 @@
 
 
 
-
-</div>
+</div><!-- begin page container -->
 
 
 

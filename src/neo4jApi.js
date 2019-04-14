@@ -10,52 +10,66 @@ var _ = require('lodash');
 var neo4j = window.neo4j.v1;
 var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("admin", "admin"));
 
-function searchCity(queryString) {
+function getIncident(city, state) {
     var session = driver.session();
-    return session
-        .run(
-            'MATCH (city:city_or_county) \
-            WHERE city.city_or_county =~ {city} \
-            RETURN city',
-            {city: '(?i).*' + queryString + '.*'}
-        )
-        .then(result => {
-            session.close();
-            return result.records.map(record => {
-                return new City(record.get('city'));
-            });
-        })
-        .catch(error => {
-            session.close();
-            throw error;
-        });
-}
-
- function getIncident(queryString) {
-  var session = driver.session();
-  return session
-    .run(
-      "MATCH (incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county) \
-                 WHERE city_or_county.city_or_county =~ {city} \
-                 RETURN incident", {city: '(?i).*' + queryString + '.*'})
-      .then(result => {
-          session.close();
-          return result.records.map(record => {
-              return new Incident(record.get('incident'));
+    if (city.replace(/(^\s*)|(\s*$)/g, "").length == 0) {
+      return session
+          .run(
+              "MATCH (incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
+              WHERE state.state =~ {state}\
+              RETURN incident", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*'})
+          .then(result => {
+              session.close();
+              return result.records.map(record => {
+                  return new Incident(record.get('incident'));
+              });
+          })
+          .catch(error => {
+              session.close();
+              throw error;
           });
-      })
-      .catch(error => {
-          session.close();
-          throw error;
-      });
+    } else if (state.replace(/(^\s*)|(\s*$)/g, "").length ==0) {
+        return session
+            .run(
+                "MATCH (incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
+                WHERE city_or_county.city_or_county =~ {city}\
+                RETURN incident", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*'})
+            .then(result => {
+                session.close();
+                return result.records.map(record => {
+                    return new Incident(record.get('incident'));
+                });
+            })
+            .catch(error => {
+                session.close();
+                throw error;
+            });
+    } else {
+        return session
+            .run(
+                "MATCH (incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
+                WHERE city_or_county.city_or_county =~ {city} AND state.state =~ {state}\
+                RETURN incident", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*'})
+            .then(result => {
+                session.close();
+                return result.records.map(record => {
+                    return new Incident(record.get('incident'));
+                });
+            })
+            .catch(error => {
+                session.close();
+                throw error;
+            });
+    }
 }
 
 function getGraph() {
     var session = driver.session();
-    return session.run(
-        'MATCH (m:Movie)<-[:ACTED_IN]-(a:Person) \
-        RETURN m.title AS movie, collect(a.name) AS cast \
-        LIMIT {limit}', {limit: 100})
+    return session
+        .run(
+            'MATCH (m:Movie)<-[:ACTED_IN]-(a:Person)\
+            RETURN m.title AS movie, collect(a.name) AS cast\
+            LIMIT {limit}', {limit: 100})
         .then(results => {
             session.close();
             var nodes = [], rels = [], i = 0;
@@ -80,7 +94,6 @@ function getGraph() {
         });
 }
 
-exports.searchCity = searchCity;
 exports.getIncident = getIncident;
 exports.getGraph = getGraph;
 

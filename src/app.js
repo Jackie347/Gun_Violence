@@ -2,54 +2,37 @@ var api = require('./neo4jApi');
 
 $(function () {
     renderGraph();
-    search();
+    searchIncident();
 
-    $("#search").submit(e => {
+    $("#searchIncident").submit(e => {
         e.preventDefault();
-        search();
+        searchIncident();
     });
 });
 
-/**
- function showMovie(title) {
-  api
-    .getMovie(title)
-    .then(movie => {
-      if (!movie) return;
-
-      $("#title").text(movie.title);
-      $("#poster").attr("src", "http://neo4j-contrib.github.io/developer-resources/language-guides/assets/posters/" + movie.title + ".jpg");
-      var $list = $("#crew").empty();
-      movie.cast.forEach(cast => {
-        $list.append($("<li>" + cast.name + " " + cast.job + (cast.job == "acted" ? " as " + cast.role : "") + "</li>"));
-      });
-    }, "json");
-}**/
-
-function search() {
-    var query = $("#search").find("input[name=search]").val();
+// 展示某个州/城市/州和城市的枪击事件
+function searchIncident() {
+    console.log("funciton searchIncident is called");
+    var city = $("#searchIncident").find("input[name=city]").val();
+    //console.log("city_or_county" + city);
+    var state = $("#searchIncident").find("input[name=state]").val();
+    //console.log("state" + state);
         api
-        .getIncident(query)
+        .getIncident(city,state)
         .then(incidents => {
-            var t = $("table#results tbody").empty();
+            var t = $("table#results1 tbody").empty();
 
             if (incidents) {
                 incidents.forEach(incident => {
                     $("<tr><td class='movie'>" + incident.id + "</td><td>" + incident.date + "</td><td>"
-                        + incident.address + "</td><td>" + incident.n_killed + "</td><td>"
+                        + incident.address + "</td><td>" + incident.state + "</td><td>"
+                        + incident.city_or_county + "</td><td>"+ incident.n_killed + "</td><td>"
                         + incident.n_injured + "</td><td>" + incident.n_guns_involved +"</td></tr>").appendTo(t)
-                    /**.click(function() {
-              showMovie($(this).find("td.movie").text());
-            })**/
                 });
-                /**
-                 var first = movies[0];
-                 if (first) {
-          showMovie(first.title);
-        }**/
             }
         });
 }
+
 
 function renderGraph() {
     var width = 800, height = 800;
