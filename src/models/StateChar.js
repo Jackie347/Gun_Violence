@@ -1,6 +1,6 @@
 var _ = require('lodash');
 
-function StateChar(city, frequency) {
+function StateChar(state, frequency) {
     _.extend(this, {
         filter: state,
         frequency: frequency

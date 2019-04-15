@@ -6,6 +6,8 @@ var Incident= require('./models/Incident');
 var Characteristic = require('./models/Characteristic');
 var StateGun = require('./models/StateGun');
 var CityGun = require('./models/CityGun');
+var StateChar = require('./models/StateChar');
+var CityChar = require('./models/CityChar');
 var GunCount = require('./models/GunCount');
 var _ = require('lodash');
 
@@ -216,12 +218,12 @@ function getCharFrequency(char, filter) {
     if (filter == 'city') {
         return session
             .run(
-                "MATCH(ch:characteristic{characteristic:{char})-[:PARTICIPATED_IN]->(i:incident)-[:HAPPENED_IN]->(c:city_or_county)\
+                "MATCH(ch:characteristic{characteristic:{char}})\
+                OPTIONAL MATCH (char)-[:PARTICIPATED_IN]->(i:incident)-[:HAPPENED_IN]->(c:city_or_county)\
                 RETURN c.city_or_county AS city, COUNT(i) AS frequency", {char: char})
             .then(result => {
                 session.close();
                 return result.records.map(record => {
-
                     return new CityChar(record.get('city'), record.get('frequency'));
                 });
             })
@@ -232,7 +234,8 @@ function getCharFrequency(char, filter) {
     } else {
         return session
             .run(
-                "MATCH(ch:characteristic{characteristic:{char})-[:PARTICIPATED_IN]->(i:incident)-[:HAPPENED_IN]->(c:city_or_county)-[:BELONGS_TO]->(s:state)\
+                "MATCH(char:characteristic {characteristic: {char}})\
+                OPTIONAL MATCH (char)-[:PARTICIPATED_IN]->(i:incident)-[:HAPPENED_IN]->(c:city_or_county)-[:BELONGS_TO]->(s:state)\
                 RETURN s.state AS state, COUNT(i) AS frequency", {char: char})
             .then(result => {
                 session.close();
@@ -286,6 +289,6 @@ exports.getGun = getGun;
 exports.getGunFrequency = getGunFrequency;
 exports.getGunCount = getGunCount;
 exports.getChar = getChar;
-exports.getcharFrequency = getCharFrequency;
+exports.getCharFrequency = getCharFrequency;
 
 

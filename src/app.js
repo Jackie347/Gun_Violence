@@ -142,8 +142,8 @@ function searchCharFrequency() {
             } else {
                 $("<th>State</th><th>Characteristic Type Frequency</th>").appendTo(k);
             }
-            var t = $("table#results4 tbody").empty();
 
+            var t = $("table#results4 tbody").empty();
             if (frequencies) {
                 frequencies.forEach(frequency => {
                     $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
