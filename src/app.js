@@ -25,9 +25,15 @@ $(function () {
         e.preventDefault();
         searchCharFrequency();
     });
+
     $("#CharCount").submit(e => {
         e.preventDefault();
         searchCharCount();
+    });
+
+    $("#IncidentFrequency").submit(e => {
+        e.preventDefault();
+        searchIncidentFrequency();
     });
 
 });
@@ -36,11 +42,12 @@ $(function () {
 function searchIncident() {
     console.log("funciton searchIncident is called");
     var city = $("#searchIncident").find("input[name=city]").val();
-    //console.log("city_or_county" + city);
     var state = $("#searchIncident").find("input[name=state]").val();
-    //console.log("state" + state);
+    var order = $('input[name=exampleRadios]:checked', '#searchIncident').val();
+    var limit = $("#searchIncident").find("input[name=limit]").val();
+    limit = parseInt(limit);
     api
-        .getIncident(city,state)
+        .getIncident(city,state,order,limit)
         .then(incidents => {
             var t = $("table#results1 tbody").empty();
 
@@ -173,6 +180,29 @@ function searchCharCount() {
         });
 
 }
+
+function searchIncidentFrequency() {
+    console.log("funciton searchCharFrequency is called");
+    var filter = $('input[name=exampleRadios]:checked', '#IncidentFrequency').val();
+    api
+        .getIncidentFrequency(filter)
+        .then(frequencies => {
+            var k = $("table#results6 thead").empty();
+            if (filter == 'city') {
+                $("<th>City or County</th><th>Incident Frequency</th>").appendTo(k);
+            } else {
+                $("<th>State</th><th>Incident Frequency</th>").appendTo(k);
+            }
+
+            var t = $("table#results6 tbody").empty();
+            if (frequencies) {
+                frequencies.forEach(frequency => {
+                    $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
+                });
+            }
+        });
+}
+
 
 /*
 function renderGraph() {

@@ -10,20 +10,24 @@ var StateChar = require('./models/StateChar');
 var CityChar = require('./models/CityChar');
 var GunCount = require('./models/GunCount');
 var CharCount = require('./models/CharCount');
+var StateIncident = require('./models/StateIncident');
+var CityIncident = require('./models/CityIncident');
 var _ = require('lodash');
 
 var neo4j = window.neo4j.v1;
 var driver = neo4j.driver("bolt://localhost:7687", neo4j.auth.basic("admin", "admin"));
 
 // get incidents by city or state
-function getIncident(city, state) {
+function getIncident(city, state, order, limit) {
     var session = driver.session();
     if (city.replace(/(^\s*)|(\s*$)/g, "").length == 0) {
         return session
             .run(
                 "MATCH (incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
-                WHERE state.state =~ {state}\
-                RETURN incident", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*'})
+                WHERE state.state =~ {state} \
+                RETURN incident \
+                ORDER BY incident." + order + " DESC"
+                + " LIMIT {limit}", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*', order: order, limit: limit})
           .then(result => {
               session.close();
               return result.records.map(record => {
@@ -39,7 +43,9 @@ function getIncident(city, state) {
             .run(
                 "MATCH (incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
                 WHERE city_or_county.city_or_county =~ {city}\
-                RETURN incident", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*'})
+                RETURN incident \
+                ORDER BY incident." + order + " DESC"
+                + " LIMIT {limit}",{city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*', order: order, limit: limit})
             .then(result => {
                 session.close();
                 return result.records.map(record => {
@@ -55,7 +61,9 @@ function getIncident(city, state) {
             .run(
                 "MATCH (incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
                 WHERE city_or_county.city_or_county =~ {city} AND state.state =~ {state}\
-                RETURN incident", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*'})
+                RETURN incident \
+                ORDER BY incident." + order + " DESC"
+                + " LIMIT {limit}", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*', order: order, limit: limit})
             .then(result => {
                 session.close();
                 return result.records.map(record => {
@@ -314,6 +322,46 @@ function getCharCount(city,state){
 
 }
 
+// get incident frequency
+// get gun frequency by city or state
+function getIncidentFrequency(filter) {
+    var session = driver.session();
+    if (filter == 'city') {
+        return session
+            .run(
+                "MATCH(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state) \
+                RETURN city_or_county.city_or_county AS city, count(incident.id) AS frequency \
+                ORDER BY frequency DESC\
+                LIMIT 20")
+            .then(result => {
+                session.close();
+                return result.records.map(record => {
+                    return new CityIncident(record.get('city'), record.get('frequency'));
+                });
+            })
+            .catch(error => {
+                session.close();
+                throw error;
+            });
+    } else {
+        return session
+            .run(
+                "MATCH(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state) \
+                RETURN state.state AS state, count(incident.id) AS frequency \
+                ORDER BY frequency DESC")
+            .then(result => {
+                session.close();
+                return result.records.map(record => {
+                    return new StateIncident(record.get('state'), record.get('frequency'));
+                });
+            })
+            .catch(error => {
+                session.close();
+                throw error;
+            });
+    }
+}
+
 /*
 function getGraph() {
     var session = driver.session();
@@ -354,4 +402,6 @@ exports.getGunCount = getGunCount;
 exports.getChar = getChar;
 exports.getCharFrequency = getCharFrequency;
 exports.getCharCount = getCharCount;
+exports.getIncidentFrequency = getIncidentFrequency;
+
 
