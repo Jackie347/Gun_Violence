@@ -9,6 +9,7 @@ var CityGun = require('./models/CityGun');
 var StateChar = require('./models/StateChar');
 var CityChar = require('./models/CityChar');
 var GunCount = require('./models/GunCount');
+var CharCount = require('./models/CharCount');
 var _ = require('lodash');
 
 var neo4j = window.neo4j.v1;
@@ -130,6 +131,7 @@ function getGunFrequency(gun, filter) {
     }
 }
 
+// get gun count by city or state
 function getGunCount(city,state){
     var session = driver.session();
     if (city.replace(/(^\s*)|(\s*$)/g, "").length == 0) {
@@ -250,6 +252,67 @@ function getCharFrequency(char, filter) {
     }
 }
 
+// get char count by city or state
+function getCharCount(city,state){
+    var session = driver.session();
+    if (city.replace(/(^\s*)|(\s*$)/g, "").length == 0) {
+        return session
+            .run(
+                "MATCH (char:characteristic)-[:PARTICIPATED_IN]->(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
+                    WHERE state.state =~ {state}\
+                    RETURN char.characteristic AS char, COUNT(incident) AS count\
+                    ORDER BY count DESC", {state: '(?i).*' + state + '.*'})
+            .then(result => {
+                session.close();
+
+                return result.records.map(record => {
+                    return new CharCount(record.get('char'), record.get('count'));
+                });
+            })
+            .catch(error => {
+                session.close();
+                throw error;
+            });
+    } else if (state.replace(/(^\s*)|(\s*$)/g, "").length ==0) {
+        return session
+            .run(
+                "MATCH (char:characteristic)-[:PARTICIPATED_IN]->(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
+                    WHERE city_or_county.city_or_county =~ {city}\
+                    RETURN char.characteristic AS char, COUNT(incident) AS count\
+                    ORDER BY count DESC", {city: '(?i).*' + city + '.*'})
+            .then(result => {
+                session.close();
+
+                return result.records.map(record => {
+                    return new CharCount(record.get('char'), record.get('count'));
+                });
+            })
+            .catch(error => {
+                session.close();
+                throw error;
+            });
+    } else {
+        return session
+            .run(
+                "MATCH (char:characteristic)-[:PARTICIPATED_IN]->(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
+                    WHERE city_or_county.city_or_county =~ {city} AND state.state =~ {state}\
+                    RETURN char.characteristic AS char, COUNT(incident) AS count\
+                    ORDER BY count DESC", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*'})
+            .then(result => {
+                session.close();
+
+                return result.records.map(record => {
+                    //console.log(record.get('gun'));
+                    return new CharCount(record.get('char'), record.get('count'));
+                });
+            })
+            .catch(error => {
+                session.close();
+                throw error;
+            });
+    }
+
+}
 
 /*
 function getGraph() {
@@ -290,5 +353,5 @@ exports.getGunFrequency = getGunFrequency;
 exports.getGunCount = getGunCount;
 exports.getChar = getChar;
 exports.getCharFrequency = getCharFrequency;
-
+exports.getCharCount = getCharCount;
 

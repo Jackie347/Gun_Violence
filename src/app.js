@@ -25,7 +25,10 @@ $(function () {
         e.preventDefault();
         searchCharFrequency();
     });
-
+    $("#CharCount").submit(e => {
+        e.preventDefault();
+        searchCharCount();
+    });
 
 });
 
@@ -152,6 +155,24 @@ function searchCharFrequency() {
         });
 }
 
+// select a city or a state, display all characteristics type frequencies
+function searchCharCount() {
+    console.log("funciton searchCharCount is called");
+    var city = $("#CharCount").find("input[name=city]").val();
+    var state = $("#CharCount").find("input[name=state]").val();
+    api
+        .getCharCount(city,state)
+        .then(counts => {
+            var t = $("table#results5 tbody").empty();
+
+            if (counts) {
+                counts.forEach(count => {
+                    $("<tr><td>"+ count.char + "</td><td>" + count.count + "</td></tr>>").appendTo(t)
+                });
+            }
+        });
+
+}
 
 /*
 function renderGraph() {
