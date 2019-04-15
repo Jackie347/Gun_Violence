@@ -1,23 +1,42 @@
 var api = require('./neo4jApi');
 
 $(function () {
-    renderGraph();
-    searchIncident();
+    //renderGraph();
+    searchGun();
+    searchChar();
+    //searchIncident();
 
     $("#searchIncident").submit(e => {
         e.preventDefault();
         searchIncident();
     });
+
+    $("#GunFrequency").submit(e => {
+        e.preventDefault();
+        searchGunFrequency();
+    });
+
+    $("#GunCount").submit(e => {
+        e.preventDefault();
+        searchGunCount();
+    });
+
+    $("#CharFrequency").submit(e => {
+        e.preventDefault();
+        searchCharFrequency();
+    });
+
+
 });
 
-// 展示某个州/城市/州和城市的枪击事件
+// display incidents by city or state
 function searchIncident() {
     console.log("funciton searchIncident is called");
     var city = $("#searchIncident").find("input[name=city]").val();
     //console.log("city_or_county" + city);
     var state = $("#searchIncident").find("input[name=state]").val();
     //console.log("state" + state);
-        api
+    api
         .getIncident(city,state)
         .then(incidents => {
             var t = $("table#results1 tbody").empty();
@@ -33,7 +52,108 @@ function searchIncident() {
         });
 }
 
+// display gun type list
+function searchGun() {
+    console.log("funciton searchGun is called");
+    api
+        .getGun()
+        .then(guns => {
+            var t = $("select#guntypes").empty();
 
+            if (guns) {
+                guns.forEach(gun => {
+                    //console.log(gun.gun);
+                    $("<option value='"+ gun.gun +"'>" + gun.gun +"<option/>").appendTo(t)
+                });
+            }
+        });
+}
+
+// select a gun type, display frequency by city or state
+function searchGunFrequency() {
+    console.log("funciton searchGunFrequency is called");
+    var gun = $("#GunFrequency").find("option:selected").val();
+    var filter = $('input[name=exampleRadios]:checked', '#GunFrequency').val();
+    api
+        .getGunFrequency(gun,filter)
+        .then(frequencies => {
+            var k = $("table#results2 thead").empty();
+            if (filter == 'city') {
+                $("<th>City or County</th><th>Gun Type Frequency</th>").appendTo(k);
+            } else {
+                $("<th>State</th><th>Gun Type Frequency</th>").appendTo(k);
+            }
+            var t = $("table#results2 tbody").empty();
+
+            if (frequencies) {
+                frequencies.forEach(frequency => {
+                    $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
+                });
+            }
+        });
+}
+
+// select a city or a state, display all gun type frequencies
+function searchGunCount() {
+    console.log("funciton searchGunCount is called");
+    var city = $("#GunCount").find("input[name=city]").val();
+    var state = $("#GunCount").find("input[name=state]").val();
+    api
+        .getGunCount(city,state)
+        .then(counts => {
+            var t = $("table#results3 tbody").empty();
+
+            if (counts) {
+                counts.forEach(count => {
+                    $("<tr><td>"+ count.gun + "</td><td>" + count.count + "</td></tr>>").appendTo(t)
+                });
+            }
+        });
+
+}
+
+// display characteristic type list
+function searchChar() {
+    console.log("funciton searchChar is called");
+    api
+        .getChar()
+        .then(chars => {
+            var t = $("select#chartypes").empty();
+
+            if (chars) {
+                chars.forEach(char => {
+                    //console.log(gun.gun);
+                    $("<option value='"+ char.characteristic +"'>" + char.characteristic +"<option/>").appendTo(t)
+                });
+            }
+        });
+}
+
+function searchCharFrequency() {
+    console.log("funciton searchCharFrequency is called");
+    var char = $("#CharFrequency").find("option:selected").val();
+    var filter = $('input[name=exampleRadios]:checked', '#CharFrequency').val();
+    api
+        .getCharFrequency(char, filter)
+        .then(frequencies => {
+            var k = $("table#results4 thead").empty();
+            if (filter == 'city') {
+                $("<th>City or County</th><th>Characteristic Type Frequency</th>").appendTo(k);
+            } else {
+                $("<th>State</th><th>Characteristic Type Frequency</th>").appendTo(k);
+            }
+            var t = $("table#results4 tbody").empty();
+
+            if (frequencies) {
+                frequencies.forEach(frequency => {
+                    $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
+                });
+            }
+        });
+}
+
+
+/*
 function renderGraph() {
     var width = 800, height = 800;
     var force = d3.layout.force()
@@ -86,4 +206,4 @@ function renderGraph() {
                 });
             });
         });
-}
+}*/
