@@ -1,10 +1,14 @@
 var api = require('./neo4jApi');
 
 $(function () {
-    //renderGraph();
     searchGun();
     searchChar();
-    //searchIncident();
+    searchIncident();
+    searchGunFrequency();
+    searchGunCount();
+    searchCharFrequency();
+    searchCharCount();
+    searchIncidentFrequency();
 
     $("#searchIncident").submit(e => {
         e.preventDefault();
@@ -38,7 +42,7 @@ $(function () {
 
 });
 
-// display incidents by city or state
+// display incidents
 function searchIncident() {
     console.log("funciton searchIncident is called");
     var city = $("#searchIncident").find("input[name=city]").val();
@@ -84,21 +88,29 @@ function searchGunFrequency() {
     console.log("funciton searchGunFrequency is called");
     var gun = $("#GunFrequency").find("option:selected").val();
     var filter = $('input[name=exampleRadios]:checked', '#GunFrequency').val();
+    var limit = $("#GunFrequency").find("input[name=limit]").val();
+    limit = parseInt(limit);
     api
-        .getGunFrequency(gun,filter)
+        .getGunFrequency(gun,filter,limit)
         .then(frequencies => {
             var k = $("table#results2 thead").empty();
+            var t = $("table#results2 tbody").empty();
             if (filter == 'city') {
-                $("<th>City or County</th><th>Gun Type Frequency</th>").appendTo(k);
+                $("<th>City or County</th><th>State</th><th>Gun Type Frequency</th>").appendTo(k);
+                if (frequencies) {
+                    frequencies.forEach(frequency => {
+                        $("<tr><td>"+ frequency.city + "</td><td>" + frequency.state + "</td><td>" +frequency.frequency + "</td></tr>>").appendTo(t)
+
+                    });
+                }
             } else {
                 $("<th>State</th><th>Gun Type Frequency</th>").appendTo(k);
-            }
-            var t = $("table#results2 tbody").empty();
+                if (frequencies) {
+                    frequencies.forEach(frequency => {
+                        $("<tr><td>"+ frequency.filter + "</td><td>" +frequency.frequency + "</td></tr>>").appendTo(t)
 
-            if (frequencies) {
-                frequencies.forEach(frequency => {
-                    $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
-                });
+                    });
+                }
             }
         });
 }
@@ -143,21 +155,27 @@ function searchCharFrequency() {
     console.log("funciton searchCharFrequency is called");
     var char = $("#CharFrequency").find("option:selected").val();
     var filter = $('input[name=exampleRadios]:checked', '#CharFrequency').val();
+    var limit = $("#CharFrequency").find("input[name=limit]").val();
+    limit = parseInt(limit);
     api
-        .getCharFrequency(char, filter)
+        .getCharFrequency(char, filter, limit)
         .then(frequencies => {
             var k = $("table#results4 thead").empty();
+            var t = $("table#results4 tbody").empty();
             if (filter == 'city') {
-                $("<th>City or County</th><th>Characteristic Type Frequency</th>").appendTo(k);
+                $("<th>City or County</th><th>State</th><th>Characteristic Type Frequency</th>").appendTo(k);
+                if (frequencies) {
+                    frequencies.forEach(frequency => {
+                        $("<tr><td>"+ frequency.city + "</td><td>" + frequency.state + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
+                    });
+                }
             } else {
                 $("<th>State</th><th>Characteristic Type Frequency</th>").appendTo(k);
-            }
-
-            var t = $("table#results4 tbody").empty();
-            if (frequencies) {
-                frequencies.forEach(frequency => {
-                    $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
-                });
+                if (frequencies) {
+                    frequencies.forEach(frequency => {
+                        $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
+                    });
+                }
             }
         });
 }
@@ -184,77 +202,27 @@ function searchCharCount() {
 function searchIncidentFrequency() {
     console.log("funciton searchCharFrequency is called");
     var filter = $('input[name=exampleRadios]:checked', '#IncidentFrequency').val();
+    var limit = $("#IncidentFrequency").find("input[name=limit]").val();
+    limit = parseInt(limit);
     api
-        .getIncidentFrequency(filter)
+        .getIncidentFrequency(filter,limit)
         .then(frequencies => {
             var k = $("table#results6 thead").empty();
+            var t = $("table#results6 tbody").empty();
             if (filter == 'city') {
-                $("<th>City or County</th><th>Incident Frequency</th>").appendTo(k);
+                $("<th>City or County</th><th>State</th><th>Incident Frequency</th>").appendTo(k);
+                if (frequencies) {
+                    frequencies.forEach(frequency => {
+                        $("<tr><td>"+ frequency.city + "</td><td>" + frequency.state + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
+                    });
+                }
             } else {
                 $("<th>State</th><th>Incident Frequency</th>").appendTo(k);
-            }
-
-            var t = $("table#results6 tbody").empty();
-            if (frequencies) {
-                frequencies.forEach(frequency => {
-                    $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
-                });
+                if (frequencies) {
+                    frequencies.forEach(frequency => {
+                        $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
+                    });
+                }
             }
         });
 }
-
-
-/*
-function renderGraph() {
-    var width = 800, height = 800;
-    var force = d3.layout.force()
-        .charge(-200).linkDistance(30).size([width, height]);
-
-    var svg = d3.select("#graph").append("svg")
-        .attr("width", "100%").attr("height", "100%")
-        .attr("pointer-events", "all");
-
-    api
-        .getGraph()
-        .then(graph => {
-            force.nodes(graph.nodes).links(graph.links).start();
-
-            var link = svg.selectAll(".link")
-                .data(graph.links).enter()
-                .append("line").attr("class", "link");
-
-            var node = svg.selectAll(".node")
-                .data(graph.nodes).enter()
-                .append("circle")
-                .attr("class", d => {
-                    return "node " + d.label
-                })
-                .attr("r", 10)
-                .call(force.drag);
-
-            // html title attribute
-            node.append("title")
-                .text(d => {
-                    return d.title;
-                });
-
-            // force feed algo ticks
-            force.on("tick", () => {
-                link.attr("x1", d => {
-                    return d.source.x;
-                }).attr("y1", d => {
-                    return d.source.y;
-                }).attr("x2", d => {
-                    return d.target.x;
-                }).attr("y2", d => {
-                    return d.target.y;
-                });
-
-                node.attr("cx", d => {
-                    return d.x;
-                }).attr("cy", d => {
-                    return d.y;
-                });
-            });
-        });
-}*/

@@ -14,6 +14,10 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
  * @return {object} Webpack configuration
  */
 module.exports = {
+  dev: {
+    host: '0.0.0.0',
+  },
+
   entry: {
     app: './src/app.js'
   },

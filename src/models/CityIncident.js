@@ -1,8 +1,9 @@
 var _ = require('lodash');
 
-function CityIncident(city, frequency) {
+function CityIncident(city, state, frequency) {
     _.extend(this, {
-        filter: city,
+        city: city,
+        state: state,
         frequency: frequency
     });
 }

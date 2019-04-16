@@ -1,8 +1,9 @@
 var _ = require('lodash');
 
-function CityGun(city, frequency) {
+function CityGun(city, state, frequency,) {
     _.extend(this, {
-        filter: city,
+        city: city,
+        state: state,
         frequency: frequency
     });
 }
