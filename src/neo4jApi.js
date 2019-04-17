@@ -143,7 +143,24 @@ function getGunFrequency(gun, filter, limit) {
 // get gun counts
 function getGunCount(city,state){
     var session = driver.session();
-    if (city.replace(/(^\s*)|(\s*$)/g, "").length == 0) {
+    if (city.replace(/(^\s*)|(\s*$)/g, "").length == 0 && state.replace(/(^\s*)|(\s*$)/g, "").length ==0) {
+        return session
+            .run(
+                "MATCH (gun:gun)-[:USED_IN]->(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
+                    RETURN gun.gun AS gun, COUNT(incident) AS count\
+                    ORDER BY count DESC")
+            .then(result => {
+                session.close();
+
+                return result.records.map(record => {
+                    return new GunCount(record.get('gun'), record.get('count'));
+                });
+            })
+            .catch(error => {
+                session.close();
+                throw error;
+            });
+    } else if (city.replace(/(^\s*)|(\s*$)/g, "").length == 0){
         return session
             .run(
                 "MATCH (gun:gun)-[:USED_IN]->(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
@@ -223,14 +240,13 @@ function getChar() {
         });
 }
 
-// get gun frequency by city or state
+// get char frequency by city or state
 function getCharFrequency(char, filter, limit) {
     var session = driver.session();
     if (filter == 'city') {
         return session
             .run(
-                "MATCH(ch:characteristic{characteristic:{char}})\
-                OPTIONAL MATCH (char)-[:PARTICIPATED_IN]->(i:incident)-[:HAPPENED_IN]->(c:city_or_county)\
+                "MATCH(char:characteristic {characteristic:{char}})-[:PARTICIPATED_IN]->(i:incident)-[:HAPPENED_IN]->(c:city_or_county)\
                 RETURN c.city_or_county AS city, c.state AS state, COUNT(i) AS frequency \
                 ORDER BY frequency DESC \
                 LIMIT {limit}", {char: char, limit: limit})
@@ -247,8 +263,7 @@ function getCharFrequency(char, filter, limit) {
     } else {
         return session
             .run(
-                "MATCH(char:characteristic {characteristic: {char}})\
-                OPTIONAL MATCH (char)-[:PARTICIPATED_IN]->(i:incident)-[:HAPPENED_IN]->(c:city_or_county)-[:BELONGS_TO]->(s:state)\
+                "MATCH(char:characteristic {characteristic: {char}})-[:PARTICIPATED_IN]->(i:incident)-[:HAPPENED_IN]->(c:city_or_county)-[:BELONGS_TO]->(s:state)\
                 RETURN s.state AS state, COUNT(i) AS frequency \
                 ORDER BY frequency DESC \
                 LIMIT {limit}", {char: char, limit: limit})
@@ -274,7 +289,7 @@ function getCharCount(city,state){
                 "MATCH (char:characteristic)-[:PARTICIPATED_IN]->(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
                     WHERE state.state =~ {state}\
                     RETURN char.characteristic AS char, COUNT(incident) AS count\
-                    ORDER BY count DESC", {state: '(?i).*' + state + '.*'})
+                    ORDER BY count DESC", {city:city, state: '(?i).*' + state + '.*'})
             .then(result => {
                 session.close();
 
@@ -292,7 +307,7 @@ function getCharCount(city,state){
                 "MATCH (char:characteristic)-[:PARTICIPATED_IN]->(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
                     WHERE city_or_county.city_or_county =~ {city}\
                     RETURN char.characteristic AS char, COUNT(incident) AS count\
-                    ORDER BY count DESC", {city: '(?i).*' + city + '.*'})
+                    ORDER BY count DESC", {city: city, state: '(?i).*' + state + '.*'})
             .then(result => {
                 session.close();
 
@@ -310,7 +325,7 @@ function getCharCount(city,state){
                 "MATCH (char:characteristic)-[:PARTICIPATED_IN]->(incident:incident)-[:HAPPENED_IN]->(city_or_county:city_or_county)-[:BELONGS_TO]->(state:state)\
                     WHERE city_or_county.city_or_county =~ {city} AND state.state =~ {state}\
                     RETURN char.characteristic AS char, COUNT(incident) AS count\
-                    ORDER BY count DESC", {city: '(?i).*' + city + '.*', state: '(?i).*' + state + '.*'})
+                    ORDER BY count DESC", {city: city, state: '(?i).*' + state + '.*'})
             .then(result => {
                 session.close();
 
@@ -328,7 +343,6 @@ function getCharCount(city,state){
 }
 
 // get incident frequency
-// get gun frequency by city or state
 function getIncidentFrequency(filter, limit) {
     var session = driver.session();
     if (filter == 'city') {
@@ -367,38 +381,6 @@ function getIncidentFrequency(filter, limit) {
             });
     }
 }
-
-/*
-function getGraph() {
-    var session = driver.session();
-    return session
-        .run(
-            'MATCH (m:Movie)<-[:ACTED_IN]-(a:Person)\
-            RETURN m.title AS movie, collect(a.name) AS cast\
-            LIMIT {limit}', {limit: 100})
-        .then(results => {
-            session.close();
-            var nodes = [], rels = [], i = 0;
-            results.records.forEach(res => {
-                nodes.push({title: res.get('movie'), label: 'movie'});
-                var target = i;
-                i++;
-
-                res.get('cast').forEach(name => {
-                    var actor = {title: name, label: 'actor'};
-                    var source = _.findIndex(nodes, actor);
-                    if (source == -1) {
-                        nodes.push(actor);
-                        source = i;
-                        i++;
-                    }
-                    rels.push({source, target})
-                })
-            });
-
-            return {nodes, links: rels};
-        });
-}*/
 
 exports.getIncident = getIncident;
 exports.getGun = getGun;

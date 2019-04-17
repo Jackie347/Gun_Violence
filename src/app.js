@@ -4,9 +4,9 @@ $(function () {
     searchGun();
     searchChar();
     searchIncident();
-    searchGunFrequency();
+    //searchGunFrequency();
     searchGunCount();
-    searchCharFrequency();
+    //searchCharFrequency();
     searchCharCount();
     searchIncidentFrequency();
 
@@ -99,7 +99,7 @@ function searchGunFrequency() {
                 $("<th>City or County</th><th>State</th><th>Gun Type Frequency</th>").appendTo(k);
                 if (frequencies) {
                     frequencies.forEach(frequency => {
-                        $("<tr><td>"+ frequency.city + "</td><td>" + frequency.state + "</td><td>" +frequency.frequency + "</td></tr>>").appendTo(t)
+                        $("<tr><td>"+ frequency.city + "</td><td>" + frequency.state + "</td><td>" +frequency.frequency + "</td></tr>").appendTo(t)
 
                     });
                 }
@@ -163,14 +163,14 @@ function searchCharFrequency() {
             var k = $("table#results4 thead").empty();
             var t = $("table#results4 tbody").empty();
             if (filter == 'city') {
-                $("<th>City or County</th><th>State</th><th>Characteristic Type Frequency</th>").appendTo(k);
+                $("<th>City or County</th><th>State</th><th>Counts</th>").appendTo(k);
                 if (frequencies) {
                     frequencies.forEach(frequency => {
                         $("<tr><td>"+ frequency.city + "</td><td>" + frequency.state + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
                     });
                 }
             } else {
-                $("<th>State</th><th>Characteristic Type Frequency</th>").appendTo(k);
+                $("<th>State</th><th>Counts</th>").appendTo(k);
                 if (frequencies) {
                     frequencies.forEach(frequency => {
                         $("<tr><td>"+ frequency.filter + "</td><td>" + frequency.frequency + "</td></tr>>").appendTo(t)
